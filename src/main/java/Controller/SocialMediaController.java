@@ -2,6 +2,11 @@ package Controller;
 
 import io.javalin.Javalin;
 import io.javalin.http.Context;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import Model.Account;
+
+import Service.AccountService;
+
 
 /**
  * TODO: You will need to write your own endpoints and handlers for your controller. The endpoints you will need can be
@@ -16,7 +21,10 @@ public class SocialMediaController {
      */
     public Javalin startAPI() {
         Javalin app = Javalin.create();
+        
         app.get("example-endpoint", this::exampleHandler);
+        app.post("register", this::accountRegistrationHandler);
+        app.post("login", this::accountLoginHandler);
 
         return app;
     }
@@ -27,6 +35,51 @@ public class SocialMediaController {
      */
     private void exampleHandler(Context context) {
         context.json("sample text");
+    }
+
+    private void accountRegistrationHandler(Context ctx){
+        ObjectMapper om = new ObjectMapper();
+        AccountService accountService = new AccountService();
+        String jsonString = ctx.body();
+
+        try {
+            Account account = om.readValue(jsonString, Account.class);
+
+            if (account.getUsername() != "" && account.getUsername() != null && account.getPassword().length() > 4){
+                Account dbAccount = accountService.insertAccount(account);
+                if (dbAccount != null){
+                    ctx.json(dbAccount); 
+                    ctx.status(200);
+                    return;
+                } 
+            } 
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }    
+        ctx.status(400);
+    }
+
+    private void accountLoginHandler(Context ctx){
+        ObjectMapper om = new ObjectMapper();
+        AccountService accountService = new AccountService();
+        String jsonString = ctx.body();
+
+        try {
+            Account account = om.readValue(jsonString, Account.class);
+
+            Account dbAccount = accountService.getAccountByUsernameAndPassword(account);
+
+            if (dbAccount != null){
+                ctx.json(dbAccount); 
+                ctx.status(200);
+                return;
+            }
+            
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        ctx.status(401);
     }
 
 
