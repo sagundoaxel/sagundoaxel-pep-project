@@ -32,8 +32,13 @@ public class AccountService {
         if (dbAccount.getUsername().equals(account.getUsername()) && dbAccount.getPassword().equals(account.getPassword())){
             return dbAccount;
         }
-        
+
         return null;
+    }
+
+    public Account getAccountByAccountID(int accountID){
+        Account dbAccount = accountDAO.getAccountById(accountID);
+        return dbAccount;
     }
 
 
