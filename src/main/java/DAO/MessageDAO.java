@@ -6,7 +6,6 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import java.sql.SQLException;
 
 public class MessageDAO {
@@ -118,9 +117,48 @@ public class MessageDAO {
         return null;
     }
 
-    // public List<Message> getMessagesFromUser(int id){
+    public Message updateMessageById(int message_id, String new_message){
+        Connection conn = ConnectionUtil.getConnection();
+        try {
+            String sql = "UPDATE message SET message_text = ? WHERE message_id = ?;";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, new_message);
+            ps.setInt(2, message_id);
+            int rowsAffected = ps.executeUpdate();
 
-    // }
+            if (rowsAffected == 1){
+                Message dbUpdatedMessage = getMessageById(message_id);
+                return dbUpdatedMessage;
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
+    public List<Message> getMessagesFromUser(int user_id){
+        Connection conn = ConnectionUtil.getConnection();
+        List <Message> messagesFromUser = new ArrayList<>();
+
+        try {
+            String sql = "SELECT * FROM message WHERE posted_by = ?;";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, user_id);
+            ResultSet rs = ps.executeQuery();
+
+            while(rs.next()){
+                Message newMsg = new Message(rs.getInt("message_id"), 
+                rs.getInt("posted_by"), 
+                rs.getString("message_text"), 
+                rs.getLong("time_posted_epoch"));
+
+                messagesFromUser.add(newMsg);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return messagesFromUser;
+    }
 
 
 

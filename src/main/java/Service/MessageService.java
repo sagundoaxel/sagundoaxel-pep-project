@@ -6,6 +6,10 @@ import Model.Message;
 import Model.Account;
 import DAO.AccountDAO;
 
+// import java.util.ArrayList;
+import java.util.List;
+
+
 public class MessageService {
     public MessageDAO messageDAO;
     public AccountDAO accountDAO;
@@ -31,6 +35,33 @@ public class MessageService {
             return dbMessage;
         }
         return null;
+    }
+
+    //get all messages 
+    public List<Message> getAllMessages() {
+        return messageDAO.getAllMessages();
+    }
+
+    public Message getMessageById(int message_id){
+        return messageDAO.getMessageById(message_id);
+    }
+
+    public Message deleteMessageById(int message_id){
+        return messageDAO.deleteMessageById(message_id);
+    } 
+
+    public Message updateMessageById(int message_id, String newMessage){
+        Message messageToUpdate = messageDAO.getMessageById(message_id);
+        if (newMessage != null && messageToUpdate != null && newMessage.length() > 0 && newMessage.length() <= 255){
+            Message updatedMessage = messageDAO.updateMessageById(message_id, newMessage);
+            return updatedMessage;
+        }
+        
+        return null;
+    }
+
+    public List<Message> getMessagesFromUser(int user_id){
+        return messageDAO.getMessagesFromUser(user_id);
     }
 
     

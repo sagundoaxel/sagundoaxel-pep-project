@@ -9,6 +9,10 @@ import Model.Message;
 import Service.AccountService;
 import Service.MessageService;
 
+import java.sql.SQLException;
+import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
+
 /**
  * TODO: You will need to write your own endpoints and handlers for your controller. The endpoints you will need can be
  * found in readme.md as well as the test cases. You should
@@ -27,6 +31,11 @@ public class SocialMediaController {
         app.post("register", this::accountRegistrationHandler);
         app.post("login", this::accountLoginHandler);
         app.post("messages", this::messageCreationHandler);
+        app.get("messages", this::messageCompleteListHandler);
+        app.get("messages/{message_id}", this::messageByIdHandler);
+        app.delete("messages/{message_id}", this::deleteMessageByIdHandler);
+        app.get("accounts/{account_id}/messages", this::getMessagesFromUserHandler);
+        app.patch("messages/{message_id}", this::patchMessageByIdHandler);
 
         return app;
     }
@@ -104,5 +113,58 @@ public class SocialMediaController {
         ctx.status(400);
     }
 
+    private void messageCompleteListHandler(Context ctx){
+        MessageService messageService = new MessageService();
+        List<Message> messages = messageService.getAllMessages();
+        ctx.json(messages);
+        ctx.status(200);
+    }
 
+    private void messageByIdHandler(Context ctx){
+        MessageService messageService = new MessageService();
+        String url_param = ctx.pathParam("message_id");
+        Message dbMessage = messageService.getMessageById(Integer.parseInt(url_param));
+        if (dbMessage != null) { ctx.json(dbMessage);}
+        ctx.status(200);
+    }
+
+    private void deleteMessageByIdHandler(Context ctx){
+        MessageService messageService = new MessageService();
+        String url_param = ctx.pathParam("message_id");
+        Message dbMessage = messageService.deleteMessageById(Integer.parseInt(url_param));
+        if (dbMessage != null) { ctx.json(dbMessage);}
+        ctx.status(200);
+    }
+
+    private void getMessagesFromUserHandler(Context ctx){
+        MessageService messageService = new MessageService();
+        String url_param = ctx.pathParam("account_id");
+        List<Message> dbMessages = messageService.getMessagesFromUser(Integer.parseInt(url_param));
+        if (dbMessages != null) { ctx.json(dbMessages);}
+        ctx.status(200);
+    }
+
+    private void patchMessageByIdHandler(Context ctx){
+        MessageService messageService = new MessageService();
+        String url_param = ctx.pathParam("message_id");
+
+        try {
+            String jsonString = ctx.body();
+            ObjectMapper om = new ObjectMapper();
+            JsonNode jsonNode = om.readTree(jsonString);
+            String newMessage = jsonNode.get("message_text").asText();
+
+            Message updatedMessage = messageService.updateMessageById(Integer.parseInt(url_param), newMessage);
+
+            if (updatedMessage != null){
+                ctx.json(updatedMessage);
+                ctx.status(200);
+                return;
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        ctx.status(400);
+    }
+    
 }
